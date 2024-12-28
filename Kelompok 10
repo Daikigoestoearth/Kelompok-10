@@ -1,0 +1,226 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+const int MAX_PRODUK = 100;
+const int MAX_VENDOR = 100;
+
+struct Produk {
+    string nama;
+    int stok;
+    double harga;
+    int totalTerjual;
+};
+
+struct Vendor {
+    string nama;
+    string alamat;
+    string kontak;
+    Produk produk[MAX_PRODUK];  // Produk terkait dengan vendor
+    int jumlahProduk = 0;  // Jumlah produk untuk vendor ini
+};
+
+Vendor vendor[MAX_VENDOR];
+int jumlahVendor = 0;
+
+void tambahVendor() {
+    if (jumlahVendor >= MAX_VENDOR) {
+        cout << "Kapasitas vendor penuh! Tidak dapat menambahkan vendor baru.\n";
+        return;
+    }
+    cout << "Masukkan nama vendor: ";
+    cin.ignore();
+    getline(cin, vendor[jumlahVendor].nama);
+    cout << "Masukkan alamat vendor: ";
+    getline(cin, vendor[jumlahVendor].alamat);
+    cout << "Masukkan kontak vendor: ";
+    getline(cin, vendor[jumlahVendor].kontak);
+    jumlahVendor++;
+    cout << "Vendor berhasil ditambahkan!\n";
+}
+
+void tambahProdukUntukVendor(int indexVendor) {
+    if (vendor[indexVendor].jumlahProduk >= MAX_PRODUK) {
+        cout << "Kapasitas produk untuk vendor ini penuh! Tidak dapat menambahkan produk baru.\n";
+        return;
+    }
+    cout << "Masukkan nama produk untuk " << vendor[indexVendor].nama << ": ";
+    cin.ignore();
+    getline(cin, vendor[indexVendor].produk[vendor[indexVendor].jumlahProduk].nama);
+    cout << "Masukkan stok produk: ";
+    cin >> vendor[indexVendor].produk[vendor[indexVendor].jumlahProduk].stok;
+    cout << "Masukkan harga produk: ";
+    cin >> vendor[indexVendor].produk[vendor[indexVendor].jumlahProduk].harga;
+    vendor[indexVendor].produk[vendor[indexVendor].jumlahProduk].totalTerjual = 0;
+    vendor[indexVendor].jumlahProduk++;
+    cout << "Produk berhasil ditambahkan untuk vendor " << vendor[indexVendor].nama << "!\n";
+}
+
+void tampilkanProdukUntukVendor(int indexVendor) {
+    if (vendor[indexVendor].jumlahProduk == 0) {
+        cout << "Belum ada produk untuk vendor " << vendor[indexVendor].nama << ".\n";
+        return;
+    }
+    cout << "=== Daftar Produk untuk Vendor " << vendor[indexVendor].nama << " ===\n";
+    for (int i = 0; i < vendor[indexVendor].jumlahProduk; i++) {
+        cout << i + 1 << ". " << vendor[indexVendor].produk[i].nama
+             << " | Stok: " << vendor[indexVendor].produk[i].stok
+             << " | Harga: Rp " << vendor[indexVendor].produk[i].harga
+             << " | Total Terjual: " << vendor[indexVendor].produk[i].totalTerjual << "\n";
+    }
+}
+
+void catatPenjualanUntukVendor(int indexVendor) {
+    if (vendor[indexVendor].jumlahProduk == 0) {
+        cout << "Tidak ada produk untuk dijual di vendor " << vendor[indexVendor].nama << ".\n";
+        return;
+    }
+    tampilkanProdukUntukVendor(indexVendor);
+    int pilihan, jumlah;
+    cout << "Pilih nomor produk yang ingin dijual: ";
+    cin >> pilihan;
+    if (pilihan < 1 || pilihan > vendor[indexVendor].jumlahProduk) {
+        cout << "Nomor produk tidak valid!\n";
+        return;
+    }
+    cout << "Masukkan jumlah produk yang terjual: ";
+    cin >> jumlah;
+    int index = pilihan - 1;
+    if (jumlah > vendor[indexVendor].produk[index].stok) {
+        cout << "Stok tidak mencukupi untuk penjualan ini.\n";
+        return;
+    }
+    vendor[indexVendor].produk[index].stok -= jumlah;
+    vendor[indexVendor].produk[index].totalTerjual += jumlah;
+    cout << "Penjualan berhasil dicatat untuk vendor " << vendor[indexVendor].nama << "!\n";
+}
+
+void produkTerlarisUntukVendor(int indexVendor) {
+    if (vendor[indexVendor].jumlahProduk == 0) {
+        cout << "Belum ada produk untuk vendor " << vendor[indexVendor].nama << ".\n";
+        return;
+    }
+    int indexTerlaris = 0;
+    for (int i = 1; i < vendor[indexVendor].jumlahProduk; i++) {
+        if (vendor[indexVendor].produk[i].totalTerjual > vendor[indexVendor].produk[indexTerlaris].totalTerjual) {
+            indexTerlaris = i;
+        }
+    }
+    cout << "=== Produk Terlaris untuk Vendor " << vendor[indexVendor].nama << " ===\n";
+    cout << "Produk: " << vendor[indexVendor].produk[indexTerlaris].nama
+         << " | Total Terjual: " << vendor[indexVendor].produk[indexTerlaris].totalTerjual << "\n";
+}
+
+void tampilkanMenuAdmin() {
+    int pilihan;
+    do {
+        cout << "=== Menu Utama Admin ===\n";
+        cout << "1. Tambah Vendor\n";
+        cout << "2. Tambah Produk untuk Vendor\n";
+        cout << "3. Tampilkan Produk untuk Vendor\n";
+        cout << "4. Catat Penjualan untuk Vendor\n";
+        cout << "5. Produk Terlaris untuk Vendor\n";
+        cout << "6. Keluar\n";
+        cout << "Pilih menu: ";
+        cin >> pilihan;
+
+        int vendorPilih;
+        switch (pilihan) {
+            case 1:
+                tambahVendor();
+                break;
+            case 2:
+                cout << "Pilih vendor untuk menambah produk (1 - " << jumlahVendor << "): ";
+                cin >> vendorPilih;
+                if (vendorPilih < 1 || vendorPilih > jumlahVendor) {
+                    cout << "Vendor tidak valid!\n";
+                } else {
+                    tambahProdukUntukVendor(vendorPilih - 1);
+                }
+                break;
+            case 3:
+                cout << "Pilih vendor untuk menampilkan produk (1 - " << jumlahVendor << "): ";
+                cin >> vendorPilih;
+                if (vendorPilih < 1 || vendorPilih > jumlahVendor) {
+                    cout << "Vendor tidak valid!\n";
+                } else {
+                    tampilkanProdukUntukVendor(vendorPilih - 1);
+                }
+                break;
+            case 4:
+                cout << "Pilih vendor untuk mencatat penjualan (1 - " << jumlahVendor << "): ";
+                cin >> vendorPilih;
+                if (vendorPilih < 1 || vendorPilih > jumlahVendor) {
+                    cout << "Vendor tidak valid!\n";
+                } else {
+                    catatPenjualanUntukVendor(vendorPilih - 1);
+                }
+                break;
+            case 5:
+                cout << "Pilih vendor untuk melihat produk terlaris (1 - " << jumlahVendor << "): ";
+                cin >> vendorPilih;
+                if (vendorPilih < 1 || vendorPilih > jumlahVendor) {
+                    cout << "Vendor tidak valid!\n";
+                } else {
+                    produkTerlarisUntukVendor(vendorPilih - 1);
+                }
+                break;
+            case 6:
+                cout << "Keluar dari program.\n";
+                break;
+            default:
+                cout << "Pilihan tidak valid!\n";
+                break;
+        }
+        cout << "\n";
+    } while (pilihan != 6);
+}
+
+void tampilkanMenuUser() {
+    int pilihan;
+    do {
+        cout << "=== Menu Utama User ===\n";
+        cout << "1. Tampilkan Produk untuk Vendor\n";
+        cout << "6. Keluar\n";
+        cout << "Pilih menu: ";
+        cin >> pilihan;
+
+        int vendorPilihUser;
+        switch (pilihan) {
+            case 1:
+                cout << "Pilih vendor untuk menampilkan produk (1 - " << jumlahVendor << "): ";
+                cin >> vendorPilihUser;
+                if (vendorPilihUser < 1 || vendorPilihUser > jumlahVendor) {
+                    cout << "Vendor tidak valid!\n";
+                } else {
+                    tampilkanProdukUntukVendor(vendorPilihUser - 1);
+                }
+                break;
+            case 6:
+                cout << "Keluar dari program.\n";
+                break;
+            default:
+                cout << "Pilihan tidak valid atau tidak diizinkan untuk role user!\n";
+                break;
+        }
+        cout << "\n";
+    } while (pilihan != 6);
+}
+
+int main() {
+    string role;
+    do {
+        cout << "Masukkan role Anda (admin/user): ";
+        cin >> role;
+
+        if (role == "admin") {
+            tampilkanMenuAdmin();
+        } else if (role == "user") {
+            tampilkanMenuUser();
+        } else {
+            cout << "Role tidak valid! Harap masukkan 'admin' atau 'user'.\n";
+        }
+    } while (role != "exit");
+
+    return 0;
+}
